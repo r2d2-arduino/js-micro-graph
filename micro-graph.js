@@ -1,12 +1,10 @@
 "use strict";
-const _version_ = '0.1.8';
+const _version_ = '0.1.9';
 
 class MicroGraph {
 
     constructor( id, data ) {
-        this.id = id;
-        this.data = data;
-        
+        this.id = id;        
         this.offsetX = 40;
         this.offsetY = 25;
         this.edge = 4;
@@ -14,28 +12,22 @@ class MicroGraph {
         this.canvas = document.getElementById(this.id);
         
         if (this.canvas != undefined){
-        
             this.ctx = this.canvas.getContext("2d");
             
-            this.minBorder = this.data.yScale[0].start;
-            this.maxBorder = this.data.yScale[0].end;
-            this.minValue = this.data.yScale[0].start;
-            this.maxValue = this.data.yScale[0].end;
+            this.minBorder = undefined;
+            this.maxBorder = undefined;
+            this.minValue  = undefined;
+            this.maxValue  = undefined;
             
-            for (let vi = 0; vi < this.data.values.length; vi++){
-                this.calcMinMax(vi);       
-            }
-            
-            this.labelWidth = undefined;       
-            
-            const regionSum = this.maxBorder - this.minBorder; 
-                  
-            this.regionStep = this.calcRegionStep();
-            
-            this.regionLen = Math.round( regionSum / this.regionStep ) + 1;
-            this.regionHeight = undefined;        
+            this.regionLen = undefined;
+            this.regionStep = undefined;
+            this.regionHeight = undefined;
             this.regionPixelValue = undefined;
             
+            this.labelWidth = undefined;              
+            
+            this.loadData(data);
+
             this.resizeCanvas();
             
             this.makeHint();
@@ -71,13 +63,42 @@ class MicroGraph {
         } 
     }
     
-    addEvents(){
-        window.addEventListener( 'load',   this.buildGraph.bind(this) );  
-        window.addEventListener( 'resize', this.buildGraph.bind(this) );   
+    rebuildGraph(data){
+        //this.clear();        
+        this.loadData(data);        
+        this.buildGraph();
+    }
+    
+    loadData(data){
+        this.data = data;
         
-        this.canvas.addEventListener( 'mousemove',  this.graphMouseMove.bind(this) );            
-        this.canvas.addEventListener( 'mouseleave', this.graphMouseLeave.bind(this) );        
-        this.canvas.addEventListener( 'ontouchstart',  this.graphMouseMove.bind(this) );
+        this.minBorder = data.yScale[0].start;
+        this.maxBorder = data.yScale[0].end;
+        this.minValue  = data.yScale[0].start;
+        this.maxValue  = data.yScale[0].end;
+        
+        for (let vi = 0; vi < this.data.values.length; vi++){
+            this.calcMinMax(vi);       
+        }
+             
+        this.regionStep = this.calcRegionStep();
+        
+        const regionSum = this.maxBorder - this.minBorder;
+        
+        this.regionLen = Math.round( regionSum / this.regionStep ) + 1;    
+    }
+    
+    addEvents(){
+        this.handleBuild = this.buildGraph.bind(this);
+        this.handleMouseMove = this.graphMouseMove.bind(this);
+        this.handleMouseLeave = this.graphMouseLeave.bind(this);
+        
+        window.addEventListener( 'load',   this.handleBuild );  
+        window.addEventListener( 'resize', this.handleBuild );   
+        
+        this.canvas.addEventListener( 'mousemove', this.handleMouseMove );            
+        this.canvas.addEventListener( 'mouseleave', this.handleMouseLeave );        
+        this.canvas.addEventListener( 'ontouchstart', this.handleMouseMove );
     }
     
     resizeCanvas(){
@@ -460,5 +481,22 @@ class MicroGraph {
         graphTip.style.top = 0;
         graphTip.style.left = 0;
         graphTip.style.opacity = 0;     
-    }   
+    }  
+    
+    clear(){
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    destroy(){
+        window.removeEventListener( 'load',   this.handleBuild );  
+        window.removeEventListener( 'resize', this.handleBuild );   
+        
+        this.canvas.removeEventListener( 'mousemove',  this.handleMouseMove );            
+        this.canvas.removeEventListener( 'mouseleave', this.handleMouseLeave );        
+        this.canvas.removeEventListener( 'ontouchstart', this.handleMoveMove );
+        
+        this.clear();
+        //remove tip
+        document.getElementById("graph-tip-" + this.id).remove();
+    }
 }
