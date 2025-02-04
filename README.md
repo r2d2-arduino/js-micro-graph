@@ -9,9 +9,9 @@ The canvas element is used as a basis.
 
 ## File Structure:
 * **micro-graph.css** - Styles used in the graph tooltip. 
-* **micro-graph.js** - Main library for plotting. Uncompressed version (17kB).
-* **micro-graph.min.js** - Main library for plotting. Compressed version (8.5kB).
-* **micro-graph.min.js.gz** - Main library for plotting. Compressed GZ version (2.3kB).
+* **micro-graph.js** - Main library for plotting. Uncompressed version (18.2kB).
+* **micro-graph.min.js** - Main library for plotting. Compressed version (9.2kB).
+* **micro-graph.min.js.gz** - Main library for plotting. Compressed GZ version (2.4kB).
 
   
 ## Example of code
