@@ -16,9 +16,9 @@
     line-height: 1;
 }
 .graph-tip ul {
-    padding-left: 0;
-    display: -webkit-box;
-    display: -ms-flexbox;
+    padding-inline-start: 0;
+    /*display: -webkit-box;*/
+    /*display: -ms-flexbox;*/
     display: flex;
     margin: 0;
     white-space: nowrap;
@@ -29,13 +29,13 @@
     display: inline-block;
     padding: 5px 10px;
     min-width: 80px;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
+    /*-webkit-box-flex: 1;*/
+    /*-ms-flex: 1;*/
     flex: 1;
     font-weight: 600;
 }
 .graph-tip strong {
-    color: #eeeeee;
+    color: #eee;
     font-weight: 600;
     display: block;
 }
@@ -46,5 +46,6 @@
     content: " ";
     border: 5px solid transparent;
     border-top-color: rgba(0, 0, 0, .75);
+    left: 50%;
 }
 
