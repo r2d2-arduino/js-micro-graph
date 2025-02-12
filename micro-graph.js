@@ -1,5 +1,4 @@
-"use strict";
-const _version_ = '0.1.10';
+const _version = 1.11;
 
 class MicroGraph {
 
@@ -11,7 +10,7 @@ class MicroGraph {
 
         this.canvas = document.getElementById(this.id);
 
-        if (this.canvas !== undefined){
+        if (this.canvas){
             this.ctx = this.canvas.getContext('2d');
 
             this.minBorder = undefined;
@@ -29,7 +28,7 @@ class MicroGraph {
             this.makeHint();
             this.addEvents();
         } else {
-            console.log('Canvas element not found, id: ' + id);
+            console.warn('Canvas element not found, id: ' + id);
         }
     }
 
@@ -43,7 +42,7 @@ class MicroGraph {
         this.makeHorizontalLines();
 
         let values = this.data.values.length;
-        for (let vi = 0;vi < values;vi++){
+        for ( let vi = 0; vi < values; vi++){
             this.makeGradient(vi);
             this.makeGraphLine(vi);
             this.makeDots(vi);
@@ -65,7 +64,7 @@ class MicroGraph {
         this.maxValue  = data.yScale[0].end;
 
         let values = this.data.values.length;
-        for (let vi = 0;vi < values;vi++){
+        for ( let vi = 0; vi < values; vi++){
             this.calcMinMax(vi);
         }
 
@@ -84,10 +83,11 @@ class MicroGraph {
 
         this.canvas.addEventListener( 'mousemove', this.handleMouseMove );
         this.canvas.addEventListener( 'mouseleave', this.handleMouseLeave );
-        this.canvas.addEventListener( 'ontouchstart', this.handleMouseMove );
+        //this.canvas.addEventListener( 'touchstart', this.handleMouseMove );
     }
 
     resizeCanvas(){
+        this.clear();
         if (this.data.height !== undefined){
             this.canvas.height = this.data.height;
         } else {
@@ -155,7 +155,7 @@ class MicroGraph {
         const yStart = this.offsetY - this.edge - 1;
         const yEnd = this.canvas.clientHeight - this.offsetY + this.edge;
 
-        for (let i = 0;i < labelLength;i++){
+        for ( let i = 0; i < labelLength; i++){
             const xCol = this.offsetX + (i + 0.5) * this.labelWidth;
 
             this.ctx.beginPath();
@@ -183,7 +183,7 @@ class MicroGraph {
         const xStart = this.offsetX - this.edge;
         const xEnd = this.canvas.clientWidth - this.offsetX + this.edge;
 
-        for (let i = 0;i < this.regionLength;i++){
+        for ( let i = 0; i < this.regionLength; i++){
             const yRow = this.offsetY + i * this.regionHeight;
             this.ctx.beginPath();
             this.ctx.moveTo( xStart, yRow );
@@ -227,7 +227,7 @@ class MicroGraph {
 
         //Graph
 
-        for (let i = 0;i < valuesVi.length;i++){
+        for ( let i = 0; i < valuesVi.length; i++){
             const value = parseFloat(valuesVi[i]);
             this.ctx.lineTo( this.offsetX + (i + 0.5) * this.labelWidth,
                 this.offsetY + (this.maxBorder - value) * this.regionPixelValue );
@@ -245,7 +245,7 @@ class MicroGraph {
 
         //Dots
         const valuesVi = this.data.values[vi];
-        for (let i = 0;i < valuesVi.length;i++){
+        for ( let i = 0; i < valuesVi.length; i++){
             const value = parseFloat(valuesVi[i]);
 
             this.ctx.beginPath();
@@ -272,7 +272,7 @@ class MicroGraph {
 
             //Graph
             const valuesVi = this.data.values[vi];
-            for (let i = 0;i < valuesVi.length;i++){
+            for ( let i = 0; i < valuesVi.length; i++){
                 let value = parseFloat(valuesVi[i])
                 this.ctx.lineTo( this.offsetX + (i + 0.5) * this.labelWidth,
                     this.offsetY + (this.maxBorder - value) * this.regionPixelValue );
@@ -312,7 +312,7 @@ class MicroGraph {
         const viLength = this.data.values.length;
         let newHtml = '<span class="title"></span><ul>';
 
-        for (let vi = 0;vi < viLength;vi++){
+        for ( let vi = 0; vi < viLength; vi++){
             newHtml += '<li><strong></strong><span class="hint"></span></li>';
         }
         newHtml += '</ul><div class="pointer"></div>';
@@ -325,7 +325,7 @@ class MicroGraph {
         let hints = graphTip.querySelectorAll('.hint');
         let ulLis = graphTip.querySelectorAll('ul li');
 
-        for (let vi = 0;vi < viLength;vi++){
+        for ( let vi = 0; vi < viLength; vi++){
             let hint = this.data.names[vi];
             if (hint === undefined){
                 hint = '';
@@ -359,8 +359,8 @@ class MicroGraph {
         let minValue = this.minValue;
         let maxValue = this.maxValue;
 
-        for (let i = 0;i < valuesLength;i++){
-            let currValue = this.data.values[0][i] * 1;
+        for ( let i = 0; i < valuesLength; i++){
+            let currValue = this.data.values[0][i];
 
             if ( currValue < minBorder){
                 minBorder = currValue;
@@ -394,16 +394,14 @@ class MicroGraph {
     }
 
     graphMouseMove(event){
-        const x = event.clientX;
-        const labelWidth = this.labelWidth;
-        const dot = Math.round( (x - this.offsetX) / labelWidth - 0.5 );
-
+        const dot = Math.round( (event.offsetX - this.offsetX) / this.labelWidth - 0.5 );
+        
         if ( (dot > -1) && (dot < this.data.values[0].length) )  {
-
-            const viLen = this.data.values.length;
+            
+            const viLen = data.values.length;
 
             let maxValue = parseFloat(this.data.values[0][dot]);
-            for (let vi = 1;vi < viLen;vi++){
+            for ( let vi = 1; vi < viLen; vi++){
                 const currValue = parseFloat(this.data.values[vi][dot]);
                 if ( currValue > maxValue){
                     maxValue = currValue;
@@ -411,13 +409,13 @@ class MicroGraph {
             }
 
             const yPos = this.offsetY + this.canvas.offsetTop + (this.maxBorder - maxValue) * this.regionPixelValue;
-
+            
             let graphTip = document.getElementById('graph-tip-' + this.id);
-
-            if ( dot !== graphTip.getAttribute('data-index') * 1 ){ //diffferent position of hint
+            
+            if ( dot != graphTip.getAttribute('data-index') ){ //diffferent position of hint
                 const canvasRightBorder = this.canvas.offsetLeft + this.canvas.offsetWidth;
 
-                const xDot = ( dot + 0.5 ) * labelWidth + this.canvas.offsetLeft + this.offsetX - (graphTip.clientWidth * 0.5);
+                const xDot = ( dot + 0.5 ) * this.labelWidth + this.canvas.offsetLeft + this.offsetX - (graphTip.clientWidth * 0.5);
                 let xPos = xDot;
                 if (xPos < 4){
                     xPos = 4;
@@ -425,11 +423,6 @@ class MicroGraph {
                 if (xPos + graphTip.offsetWidth > canvasRightBorder){
                     xPos = canvasRightBorder - graphTip.offsetWidth;
                 }
-
-                graphTip.style.top = yPos - graphTip.clientHeight - 10 + 'px';
-                graphTip.style.left = xPos + 'px';
-                graphTip.style.opacity = '1';
-                graphTip.setAttribute('data-index', dot);
 
                 let ySuffix = this.data.yScale[0].suffix;
                 if (ySuffix === undefined){
@@ -444,11 +437,15 @@ class MicroGraph {
                 graphTip.querySelector('span.title').innerHTML = this.data.xScale[0].labels[dot] + xSuffix;
 
                 let ulLiStrong = graphTip.querySelectorAll('ul li strong');
-                for (let vi = 0;vi < viLen;vi++){
+                for ( let vi = 0; vi < viLen; vi++){
                     ulLiStrong[vi].innerHTML = this.data.values[vi][dot] + ySuffix;
                 }
 
                 graphTip.querySelector('div.pointer').style.left = 'calc(50% + ' + (xDot - xPos) + 'px)';
+                graphTip.style.top = yPos - graphTip.clientHeight - 10 + 'px';
+                graphTip.style.left = xPos + 'px';
+                graphTip.setAttribute('data-index', dot); 
+                graphTip.style.opacity = '1';                              
             }
         }
     }
@@ -472,6 +469,7 @@ class MicroGraph {
         graphTip.style.top = '0';
         graphTip.style.left = '0';
         graphTip.style.opacity = '0';
+        graphTip.setAttribute('data-index', '-1');
     }
 
     clear(){
@@ -484,7 +482,7 @@ class MicroGraph {
 
         this.canvas.removeEventListener( 'mousemove',  this.handleMouseMove );
         this.canvas.removeEventListener( 'mouseleave', this.handleMouseLeave );
-        this.canvas.removeEventListener( 'ontouchstart', this.handleMouseMove );
+        //this.canvas.removeEventListener( 'touchstart', this.handleMouseMove );
 
         this.clear();
         //remove tip
