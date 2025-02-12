@@ -1,4 +1,4 @@
-const _version = 1.11;
+const _version = 1.12;
 
 class MicroGraph {
 
@@ -12,7 +12,8 @@ class MicroGraph {
 
         if (this.canvas){
             this.ctx = this.canvas.getContext('2d');
-
+            
+            this.data = data;
             this.minBorder = undefined;
             this.maxBorder = undefined;
             this.minValue  = undefined;
@@ -56,8 +57,6 @@ class MicroGraph {
     }
 
     loadData(data){
-        this.data = data;
-
         this.minBorder = data.yScale[0].start;
         this.maxBorder = data.yScale[0].end;
         this.minValue  = data.yScale[0].start;
@@ -216,17 +215,10 @@ class MicroGraph {
         //Set line settings
         this.ctx.lineWidth = 3;
         this.ctx.strokeStyle = this.data.colors[vi];
-
         this.ctx.beginPath();
 
         const valuesVi = this.data.values[vi];
-        //Start point
-        const value0 = parseFloat(valuesVi[0]);
-        this.ctx.moveTo( this.offsetX + 0.5 * this.labelWidth,
-            this.offsetY + (this.maxBorder - value0) * this.regionPixelValue );
-
         //Graph
-
         for ( let i = 0; i < valuesVi.length; i++){
             const value = parseFloat(valuesVi[i]);
             this.ctx.lineTo( this.offsetX + (i + 0.5) * this.labelWidth,
@@ -241,7 +233,7 @@ class MicroGraph {
         const dotSize = 4;
         this.ctx.fillStyle = this.data.colors[vi];
         this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = 'rgb(255 255 255 / 80%)';
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
 
         //Dots
         const valuesVi = this.data.values[vi];
@@ -303,28 +295,19 @@ class MicroGraph {
     }
 
     makeHint(){
-        let hintElement = document.createElement('div');
-        hintElement.id = 'graph-tip-' + this.id;
-        hintElement.setAttribute('class', 'graph-tip');
-        hintElement.setAttribute('data-index', '-1');
-        hintElement.setAttribute('style', 'top: 0px;left: 0px;opacity: 0;');
+        let graphTip = document.createElement('div');
+        graphTip.id = 'graph-tip-' + this.id;
+        graphTip.setAttribute('class', 'graph-tip');
+        graphTip.setAttribute('data-index', '-1');
+        graphTip.setAttribute('style', 'top: 0px; left: 0px; opacity: 0;');
+
+        let spanTitle = document.createElement('span');
+        spanTitle.setAttribute('class', 'title');
+        graphTip.appendChild(spanTitle);
+        
+        let ulElement = document.createElement('ul');
 
         const viLength = this.data.values.length;
-        let newHtml = '<span class="title"></span><ul>';
-
-        for ( let vi = 0; vi < viLength; vi++){
-            newHtml += '<li><strong></strong><span class="hint"></span></li>';
-        }
-        newHtml += '</ul><div class="pointer"></div>';
-
-        hintElement.innerHTML = newHtml;
-
-        this.canvas.after(hintElement);
-
-        let graphTip = document.getElementById('graph-tip-' + this.id);
-        let hints = graphTip.querySelectorAll('.hint');
-        let ulLis = graphTip.querySelectorAll('ul li');
-
         for ( let vi = 0; vi < viLength; vi++){
             let hint = this.data.names[vi];
             if (hint === undefined){
@@ -335,10 +318,30 @@ class MicroGraph {
             if (color === undefined){
                 color = '#000000';
             }
-
-            hints[vi].innerHTML = hint;
-            ulLis[vi].style.borderTop = '3px solid ' + color;
+            
+            let strongElement = document.createElement('strong');
+            
+            let spanHint = document.createElement('span');
+            spanHint.setAttribute('class', 'hint');
+            spanHint.textContent = hint;
+            
+            let liElement = document.createElement('li');
+            
+            liElement.style.borderTop = '3px solid ' + color;
+            liElement.appendChild(strongElement);
+            liElement.appendChild(spanHint);
+            
+            ulElement.appendChild(liElement);
         }
+        
+        graphTip.appendChild(ulElement);
+        
+        let divPointer = document.createElement('div');
+        divPointer.setAttribute('class', 'pointer');
+        
+        graphTip.appendChild(divPointer);
+        
+        this.canvas.after(graphTip);
     }
 
     makeTitle(){
@@ -360,7 +363,7 @@ class MicroGraph {
         let maxValue = this.maxValue;
 
         for ( let i = 0; i < valuesLength; i++){
-            let currValue = this.data.values[0][i];
+            let currValue = this.data.values[vi][i];
 
             if ( currValue < minBorder){
                 minBorder = currValue;
@@ -398,7 +401,7 @@ class MicroGraph {
         
         if ( (dot > -1) && (dot < this.data.values[0].length) )  {
             
-            const viLen = data.values.length;
+            const viLen = this.data.values.length;
 
             let maxValue = parseFloat(this.data.values[0][dot]);
             for ( let vi = 1; vi < viLen; vi++){
@@ -434,11 +437,11 @@ class MicroGraph {
                     xSuffix = '';
                 }
 
-                graphTip.querySelector('span.title').innerHTML = this.data.xScale[0].labels[dot] + xSuffix;
+                graphTip.querySelector('span.title').textContent = this.data.xScale[0].labels[dot] + xSuffix;
 
                 let ulLiStrong = graphTip.querySelectorAll('ul li strong');
                 for ( let vi = 0; vi < viLen; vi++){
-                    ulLiStrong[vi].innerHTML = this.data.values[vi][dot] + ySuffix;
+                    ulLiStrong[vi].textContent = this.data.values[vi][dot] + ySuffix;
                 }
 
                 graphTip.querySelector('div.pointer').style.left = 'calc(50% + ' + (xDot - xPos) + 'px)';
@@ -466,10 +469,12 @@ class MicroGraph {
 
     hideHint(){
         let graphTip = document.getElementById('graph-tip-' + this.id);
-        graphTip.style.top = '0';
-        graphTip.style.left = '0';
-        graphTip.style.opacity = '0';
-        graphTip.setAttribute('data-index', '-1');
+        if (graphTip) {
+            graphTip.style.top = '0';
+            graphTip.style.left = '0';
+            graphTip.style.opacity = '0';
+            graphTip.setAttribute('data-index', '-1');
+        }
     }
 
     clear(){
@@ -477,15 +482,20 @@ class MicroGraph {
     }
 
     destroy(){
-        window.removeEventListener( 'load',   this.handleBuild );
-        window.removeEventListener( 'resize', this.handleBuild );
-
-        this.canvas.removeEventListener( 'mousemove',  this.handleMouseMove );
-        this.canvas.removeEventListener( 'mouseleave', this.handleMouseLeave );
+        window.removeEventListener('load', this.handleBuild);
+        window.removeEventListener('resize', this.handleBuild);
+        
+        this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+        this.canvas.removeEventListener('mouseleave', this.handleMouseLeave);
         //this.canvas.removeEventListener( 'touchstart', this.handleMouseMove );
+        
+        let graphTip = document.getElementById('graph-tip-' + this.id);
+        if (graphTip) {
+            graphTip.remove();
+        }
 
         this.clear();
-        //remove tip
-        document.getElementById('graph-tip-' + this.id).remove();
+        this.ctx = null;
+        this.canvas = null;
     }
 }
